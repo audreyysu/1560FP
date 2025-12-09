@@ -48,7 +48,7 @@ plot_route_eol_stacked <- function(route_eol) {
   barplot(M, names.arg = route_eol$Route, las = 2, ylim = c(0,1),
           ylab = "Share", main = "Delay composition by route",
           col = c("green","lightblue","lightpink"))
-  legend("topright", inset = 0.01,
+  legend("topright", inset = c(0, -0.2), xpd=NA,
          fill = c("green","lightblue","lightpink"),
          legend = c("Early","On-time","Late"), bty = "n")
   par(op)
@@ -62,7 +62,7 @@ plot_worst20_eol_stacked <- function(worst20_tbl) {
   barplot(M, horiz = TRUE, names.arg = labs, las = 2, xlim = c(0,1),
           xlab = "Share", main = "Worst 20 stops (by late share)",
           col = c("green","lightblue","lightpink"))
-  legend("bottomright",
+  legend("topright", inset = c(0, -0.15), xpd=NA,
          fill = c("green","lightblue","lightpink"),
          legend = c("Early","On-time","Late"), bty = "n")
   par(op)
