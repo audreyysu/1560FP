@@ -11,7 +11,7 @@ test_parsing <- function() {
     Delay.Sec = NA_real_,
     stringsAsFactors = FALSE, check.names = FALSE
   )
-  cl <- clean_otp(df)
+  cl <- clean(df)
   stopifnot(inherits(cl$sched, "POSIXct"))
   stopifnot(inherits(cl$actual, "POSIXct"))
   stopifnot(is.finite(cl$Delay.Sec[1]))
@@ -32,7 +32,7 @@ test_stop_summary <- function() {
     Delay.Sec = c(180,360,120,1200),
     stringsAsFactors = FALSE, check.names = FALSE
   )
-  cl <- clean_otp(df)
+  cl <- clean(df)
   ss <- summarize_by_stop(cl, threshold_sec = 300)
   stopifnot(all(c("Stop","Route","arrivals","ontime_rate") %in% names(ss)))
   TRUE
