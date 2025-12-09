@@ -9,7 +9,7 @@ Repo contains complete R workflow for cleaning, summarizing, modeling, analyzing
 
 - [Project Structure](#project-structure)  
 - [Installation](#installation)  
-- [Scripts & Functions](#scripts--functions--and-visualizations)  
+- [Scripts & Functions](#scripts--functions)  
 - [Example Usage](#example-usage) 
 
 ---
@@ -37,7 +37,7 @@ The following R packages are needed:
 install.packages(c("dplyr", "lubridate", "lme4", "ggplot2", "tidyr"))
 ```
 
-## Scripts, Functions, and Visualizations
+## Scripts & Functions
 Input must be a .csv with columns `Date	Driver.ID	Route	Trip	Stop	Stop.Sequence	Scheduled.Time	Actual.Arrival.Time	Delay.Sec	StopLat	StopLng`.
 
 - clean.R – contains clean_otp() and helper functions like is_on_time().
