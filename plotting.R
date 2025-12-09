@@ -1,44 +1,111 @@
 #' Simple base-R plots for delay diagnostics
 #' @param tbl cleaned data and route integer 
-
 .clip_to_quantiles <- function(x, lo = 0.01, hi = 0.99) {
   x <- x[is.finite(x)]
   qs <- quantile(x, c(lo, hi), na.rm = TRUE)
-  pmin(pmax(x, qs[1]), qs[2])   # winsorize to [lo, hi]
+  pmin(pmax(x, qs[1]), qs[2])
 }
 
-plot_delay_histogram <- function(tbl, route = NULL, trim = c(0.01, 0.99)) {
-  x <- tbl$Delay.Sec
-  ttl <- "Delay (sec) – all routes"
-  if (!is.null(route)) {
-    x   <- x[!is.na(tbl$Route) & tbl$Route == route]
-    ttl <- paste0("Delay (sec) – Route ", route)
+.plot_win <- function(x, lo = 0.01, hi = 0.99) {
+  .clip_to_quantiles(x, lo, hi)
+}
+
+plot_delay_histogram <- function(tbl, route = NULL, trim = c(0.01, 0.99), stratify = TRUE) {
+  if (stratify) {
+    tbl <- tbl[tbl$weather_cat %in% c("clear", "precip"), ]
+    groups <- unique(tbl$weather_cat)
+  } else {
+    groups <- "all"
+    tbl$weather_cat <- "all"
   }
-  x_plot <- .clip_to_quantiles(x, trim[1], trim[2])
-  rng    <- range(x_plot, na.rm = TRUE)
   
-  hist(x_plot, breaks = 60,
-       main = ttl, xlab = "Delay (seconds)", xlim = rng)
-  abline(v = c(-300, 300), col = "red", lty = 2)
+  par(mfrow = c(length(groups), 1), mar = c(4,4,2,1))
+  for (w in groups) {
+    x <- if (stratify) tbl$Delay.Sec[tbl$weather_cat == w] else tbl$Delay.Sec
+    if (!is.null(route)) x <- x[tbl$Route == route]
+    x_plot <- .clip_to_quantiles(x, trim[1], trim[2])
+    
+    hist(x_plot, breaks = 60,
+         main = if (stratify) paste("Delay (sec) –", w) else "Delay (sec) – Overall",
+         xlab = "Delay (seconds)")
+    abline(v = c(-300, 300), col = "red", lty = 2)
+  }
+  par(mfrow = c(1,1))
 }
 
 #' Boxplots of delay by hour 
-plot_delay_by_hour <- function(tbl, trim = c(0.01, 0.99)) {
-  d <- tbl[, c("hour","Delay.Sec")]
-  d <- d[is.finite(d$Delay.Sec) & !is.na(d$hour), , drop = FALSE]
+plot_delay_by_hour <- function(df, trim = c(0.01, 0.99), stratify = TRUE) {
   
-  # force hour labels 0-23 even if some hours have no data
-  d$hour <- factor(as.integer(d$hour), levels = 0:23)
+  df <- df %>% filter(!is.na(hour_num) & is.finite(Delay.Sec)) %>%
+    mutate(Delay.Sec = .plot_win(Delay.Sec, trim[1], trim[2]),
+           hour_num = factor(hour_num, levels = 0:23))
   
-  # winsorize delays for plotting so points/whiskers don’t explode
-  d$Delay.Sec <- .clip_to_quantiles(d$Delay.Sec, trim[1], trim[2])
+  if (!stratify) {
+    df$weather_cat <- "Overall"
+  } else {
+    df <- df %>% filter(weather_cat %in% c("clear","precip"))
+  }
   
-  boxplot(Delay.Sec ~ hour, data = d, outline = FALSE,
-          main = "Delay by hour", xlab = "Hour of day", ylab = "Delay (seconds)")
-  abline(h = c(-300, 300), col = "red", lty = 2)
+  ggplot(df, aes(x = hour_num, y = Delay.Sec, fill = weather_cat)) +
+    geom_boxplot(position = position_dodge(width = 0.8), outlier.shape = NA) +
+    labs(
+      title = if (stratify) "Delay by Hour and Weather Category" else "Delay by Hour – Overall",
+      x = "Hour of Day",
+      y = "Delay (seconds)",
+      fill = "Weather"
+    ) +
+    theme_minimal() +
+    theme(legend.position = if (stratify) "top" else "none")
 }
 
-
+# Median and IQR by hour
+plot_delay_quantiles_by_hour_weather <- function(tbl, ylim_top = NULL, stratify = TRUE) {
+  
+  if (!stratify) {
+    tbl$weather_cat <- "Overall"
+  } else {
+    tbl <- tbl[tbl$weather_cat %in% c("clear","precip"), ]
+  }
+  
+  weathers <- unique(tbl$weather_cat)
+  colors <- c("blue","orange","gray")[seq_along(weathers)]
+  
+  hrs <- 0:23
+  med_mat <- q1_mat <- q3_mat <- matrix(NA_real_, nrow = length(hrs), ncol = length(weathers),
+                                        dimnames = list(hrs, weathers))
+  
+  for (i in seq_along(weathers)) {
+    d <- tbl[tbl$weather_cat == weathers[i], ]
+    d <- d[!is.na(d$hour_num) & is.finite(d$Delay.Sec), c("hour_num","Delay.Sec")]
+    d$Delay.Sec <- .plot_win(d$Delay.Sec)
+    
+    for (h in hrs) {
+      x <- d$Delay.Sec[d$hour_num == h]
+      if (length(x)) {
+        med_mat[as.character(h), weathers[i]] <- median(x, na.rm = TRUE)
+        q1_mat[as.character(h), weathers[i]]  <- quantile(x, 0.25, na.rm = TRUE)
+        q3_mat[as.character(h), weathers[i]]  <- quantile(x, 0.75, na.rm = TRUE)
+      }
+    }
+  }
+  
+  y_min <- min(q1_mat, med_mat, q3_mat, na.rm = TRUE)
+  y_max <- max(q1_mat, med_mat, q3_mat, na.rm = TRUE)
+  if (!is.null(ylim_top) && is.finite(ylim_top)) y_max <- max(y_max, ylim_top)
+  
+  plot(hrs, med_mat[,1], type = "n", ylim = c(y_min, y_max),
+       xlab = "Hour", ylab = "Delay (seconds)",
+       main = if (stratify) "Median delay by hour (with IQR) by weather" else "Median delay by hour (with IQR) – Overall")
+  abline(h = c(-300, 300), col = "red", lty = 2)
+  
+  for (i in seq_along(weathers)) {
+    lines(hrs, med_mat[,i], type = "b", pch = 16, col = colors[i])
+    segments(hrs, q1_mat[,i], hrs, q3_mat[,i], col = colors[i])
+  }
+  
+  legend("topright", legend = weathers, col = colors[seq_along(weathers)], 
+         pch = 16, lty = 1, bty = "n")
+}
 
 # Stacked bar: E/O/L by route
 plot_route_eol_stacked <- function(route_eol) {
@@ -91,38 +158,6 @@ plot_heatmap_route_hour <- function(tbl, threshold_sec = 300) {
          fill = cols[c(1, length(cols))], bty = "n")
 }
 
-# Median and IQR by hour
-plot_delay_quantiles_by_hour <- function(tbl, ylim_top = NULL) {
-  d <- tbl[!is.na(tbl$hour) & is.finite(tbl$Delay.Sec), c("hour","Delay.Sec")]
-  d$Delay.Sec <- .plot_win(d$Delay.Sec)     
-  
-  hrs <- 0:23
-  med <- q1 <- q3 <- rep(NA_real_, length(hrs))
-  for (i in seq_along(hrs)) {
-    x <- d$Delay.Sec[d$hour == hrs[i]]
-    if (length(x)) {
-      med[i] <- median(x, na.rm = TRUE)
-      q1[i]  <- quantile(x, 0.25, na.rm = TRUE, names = FALSE)
-      q3[i]  <- quantile(x, 0.75, na.rm = TRUE, names = FALSE)
-    }
-  }
-  
-  # y-limits: raise the top if pass ylim_top
-  y_min <- min(q1, med, q3, na.rm = TRUE)
-  y_max <- max(q1, med, q3, na.rm = TRUE)
-  if (!is.null(ylim_top) && is.finite(ylim_top)) y_max <- max(y_max, ylim_top)
-  
-  plot(hrs, med, type = "b", pch = 16, xlab = "Hour",
-       ylab = "Delay (seconds)",
-       main = "Median delay by hour with IQR",
-       ylim = c(y_min, y_max))
-  segments(hrs, q1, hrs, q3)
-  abline(h = c(-300, 300), col = "red", lty = 2)
-}
-
-.plot_win <- function(x, lo = 0.01, hi = 0.99) .clip_to_quantiles(x, lo, hi)
-
-
 # Wilson CI for binomial proportion
 .wilson <- function(k, n, conf = 0.95) {
   if (n == 0) return(c(NA, NA))
@@ -154,4 +189,10 @@ plot_funnel_ontime <- function(stop_summary, conf = 0.95) {
   abline(h = p0, col = "grey40")
 }
 
-
+# plot_delay_histogram(df, stratify = FALSE)
+# plot_delay_by_hour(sample_df, stratify = FALSE)
+# plot_delay_quantiles_by_hour(sample_df, stratify = FALSE)
+# 
+# plot_delay_histogram(df, stratify = TRUE)
+# plot_delay_by_hour(sample_df, stratify = TRUE)
+# plot_delay_quantiles_by_hour(sample_df, stratify = TRUE)
