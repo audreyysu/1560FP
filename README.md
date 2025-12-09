@@ -9,7 +9,7 @@ Repo contains complete R workflow for cleaning, summarizing, modeling, analyzing
 
 - [Project Structure](#project-structure)  
 - [Installation](#installation)  
-- [Scripts & Functions](#scripts--functions)  
+- [Scripts & Functions](#scripts--functions--and-visualizations)  
 - [Example Usage](#example-usage) 
 
 ---
