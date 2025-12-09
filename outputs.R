@@ -4,12 +4,12 @@ res <- run_all("otp_simulated.csv", threshold_sec = 300)
 print(head(res$stop_sum, 5))
 
 
-# Inspect in-session
+# Inspect data
 head(res$stop_sum, 10)
 head(res$hour_sum, 10)
 res$worst20
 table(res$otp$hour)       
-summary(res$otp$Delay.Sec)  # no ±86400
+summary(res$otp$Delay.Sec) 
 head(res$worst20, 10)
 
 # Existing helpers
@@ -34,6 +34,6 @@ ontime_by_route <- aggregate(
 barplot(ontime_by_route$x, names.arg = ontime_by_route$Route,
         main = "On-time rate by route", ylab = "On-time rate", las = 2)
 
-# E/O/L by route (stacked)
+# E/O/L (early/ontime/late) by route (stacked)
 plot_route_eol_stacked(res$route_eol)
 
