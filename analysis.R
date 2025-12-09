@@ -16,13 +16,13 @@ summarize_by_stop <- function(tbl, threshold_sec = 300) {
     n      <- length(ii)
     ot     <- mean(is_on_time(delays, threshold_sec = threshold_sec), na.rm = TRUE)
     data.frame(
-      Stop         = d$Stop[ii[1]],
-      Route        = d$Route[ii[1]],
-      arrivals     = n,
-      ontime_rate  = ot,
+      Stop = d$Stop[ii[1]],
+      Route = d$Route[ii[1]],
+      arrivals = n,
+      ontime_rate = ot,
       median_delay = safe_median(delays),
-      p90_delay    = safe_quant(delays, 0.9),
-      mean_delay   = mean(delays, na.rm = TRUE)
+      p90_delay = safe_quant(delays, 0.9),
+      mean_delay = mean(delays, na.rm = TRUE)
     )
   })
   do.call(rbind, res)
@@ -40,12 +40,12 @@ summarize_by_route_hour <- function(tbl, threshold_sec = 300) {
   res <- lapply(idx, function(ii) {
     delays <- d$Delay.Sec[ii]
     data.frame(
-      Route        = d$Route[ii[1]],
-      hour         = d$hour[ii[1]],
-      arrivals     = length(ii),
-      ontime_rate  = mean(is_on_time(delays, threshold_sec), na.rm = TRUE),
+      Route = d$Route[ii[1]],
+      hour = d$hour[ii[1]],
+      arrivals = length(ii),
+      ontime_rate = mean(is_on_time(delays, threshold_sec), na.rm = TRUE),
       median_delay = safe_median(delays),
-      p90_delay    = safe_quant(delays, 0.9)
+      p90_delay = safe_quant(delays, 0.9)
     )
   })
   do.call(rbind, res)

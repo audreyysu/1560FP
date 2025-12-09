@@ -47,9 +47,9 @@ plot_route_eol_stacked <- function(route_eol) {
   op <- par(mar = c(7,4,4,1))
   barplot(M, names.arg = route_eol$Route, las = 2, ylim = c(0,1),
           ylab = "Share", main = "Delay composition by route",
-          col = c("green","blue","red"))
+          col = c("green","lightblue","lightpink"))
   legend("topright", inset = 0.01,
-         fill = c("green","blue","red"),
+         fill = c("green","lightblue","lightpink"),
          legend = c("Early","On-time","Late"), bty = "n")
   par(op)
 }
@@ -61,9 +61,9 @@ plot_worst20_eol_stacked <- function(worst20_tbl) {
   op <- par(mar = c(5,20,4,2))
   barplot(M, horiz = TRUE, names.arg = labs, las = 2, xlim = c(0,1),
           xlab = "Share", main = "Worst 20 stops (by late share)",
-          col = c("green","blue","red"))
-  legend("bottomright", inset = 0.01,
-         fill = c("green","blue","red"),
+          col = c("green","lightblue","lightpink"))
+  legend("bottomright",
+         fill = c("green","lightblue","lightpink"),
          legend = c("Early","On-time","Late"), bty = "n")
   par(op)
 }
@@ -71,6 +71,8 @@ plot_worst20_eol_stacked <- function(worst20_tbl) {
 
 # Heatmap: on-time share by Route x Hour 
 plot_heatmap_route_hour <- function(tbl, threshold_sec = 300) {
+  tbl <- tbl[!(tbl$hour %in% c(2L, 3L)), , drop = FALSE]
+  
   M <- with(tbl, tapply(as.numeric(abs(Delay.Sec) <= threshold_sec),
                         list(Route = Route, Hour = hour),
                         function(z) mean(z, na.rm = TRUE)))
@@ -118,6 +120,9 @@ plot_delay_quantiles_by_hour <- function(tbl, ylim_top = NULL) {
   segments(hrs, q1, hrs, q3)
   abline(h = c(-300, 300), col = "red", lty = 2)
 }
+
+.plot_win <- function(x, lo = 0.01, hi = 0.99) .clip_to_quantiles(x, lo, hi)
+
 
 # Wilson CI for binomial proportion
 .wilson <- function(k, n, conf = 0.95) {

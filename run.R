@@ -1,10 +1,7 @@
 #' Run end-to-end: read, clean, summarize, and save outputs
 #' @param path_csv character path to otp_simulated.csv, and threshold_sec on-time threshold (default 300 = ±5 min)
 #' @return list(invisible) with objects you can inspect in the session
-run_all <- function(path_csv = "otp_simulated.csv",
-                    threshold_sec = 300,
-                    save_dir = "results",
-                    save_png = TRUE) {
+run_all <- function(path_csv = "otp_simulated.csv", threshold_sec = 300, save_dir = "results", save_png = TRUE) {
   
   raw <- read_otp_csv(path_csv)
   otp <- clean_otp(raw)
@@ -17,21 +14,21 @@ run_all <- function(path_csv = "otp_simulated.csv",
   worst20E  <- worst20_by_late(stop_eol, min_n = 30L)  # <- min n filter
   
   # E/O/L by route (stacked bars)
-  plot_route_eol_stacked(res$route_eol)
+#  plot_route_eol_stacked(res$route_eol)
   
   # Worst 20 stop–route combos ranked by LATE share (stacked bars)
-  w20 <- worst20_by_late(res$stop_eol)
-  plot_worst20_eol_stacked(w20)
+  #w20 <- worst20_by_late(res$stop_eol)
+  #plot_worst20_eol_stacked(w20)
   
   
   # HEATMAP
-  plot_heatmap_route_hour(res$otp, threshold_sec = 300)
+  #plot_heatmap_route_hour(res$otp, threshold_sec = 300)
   
   # MEDIAN + IQR BY HOUR
-  plot_delay_quantiles_by_hour(res$otp)
+#  plot_delay_quantiles_by_hour(res$otp)
 
   # FUNNEL (guards against small-n false alarms)
-  plot_funnel_ontime(res$stop_sum, conf = 0.95)
+#  plot_funnel_ontime(res$stop_sum, conf = 0.95)
 
   
   

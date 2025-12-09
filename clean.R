@@ -25,12 +25,11 @@ clean_otp <- function(x) {
   out$sched  <- as.POSIXct(strptime(out[["Scheduled.Time"]], fmt, tz = tz_used))
   out$actual <- as.POSIXct(strptime(out[["Actual.Arrival.Time"]], fmt, tz = tz_used))
   
-  ## 2) Derive date/hour from 'scheduled' time
+  # Derive date/hour from 'scheduled' time
   out$Date <- as.Date(out$sched, tz = tz_used)
   out$hour <- as.integer(format(out$sched, "%H"))
   
   
-  ## 3) Delay in seconds; fold to nearest day (fixes cross-day logging)
   # raw difference in seconds:
   d <- as.numeric(difftime(out$actual, out$sched, units = "secs"))
   
@@ -43,7 +42,7 @@ clean_otp <- function(x) {
     d <- ds
   }
   
-  # fold to the closest 24h equivalent: [-12h, +12h]
+  # move to the closest 24h equivalent: [-12h, +12h]
   d <- ((d + 12*3600) %% (24*3600)) - 12*3600
   
   out$Delay.Sec <- d
@@ -53,7 +52,6 @@ clean_otp <- function(x) {
             "sched","actual","Delay.Sec","hour")
   out[keep]
 }
-
 
 
 #' Binary on-time classifier
