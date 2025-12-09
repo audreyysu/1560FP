@@ -16,7 +16,7 @@ read_data <- function(file_path) {
 #'   Date (Date), Driver.ID (chr), Route (int), Trip (int),
 #'   Stop (chr), Stop.Sequence (int),
 #'   Scheduled.Time (POSIXct), Actual.Arrival.Time (POSIXct),
-#'   Rounded.Time (POSIXct), Delay.Sec (numeric)
+#'   Rounded.Time (POSIXct), Delay.Sec (numeric), early, late, ontime
 clean <- function(x) {
   # fix time columns
   out <- x %>%
