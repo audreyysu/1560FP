@@ -23,6 +23,7 @@ Repo contains complete R workflow for cleaning, summarizing, modeling, analyzing
 ├── plotting.R # plotting results
 ├── analysis.R # analyzing stops & routes
 ├── visualizations/ # folder for plots
+├── tests.R # basic tests of functionality
 └── otp_simulated.csv # needs to be user-provided .csv
 ```
 
@@ -36,7 +37,8 @@ The following R packages are needed:
 install.packages(c("dplyr", "lubridate", "lme4", "ggplot2", "tidyr"))
 ```
 
-## Scripts & Functions
+## Scripts, Functions, and Visualizations
+Input must be a .csv with columns `Date	Driver.ID	Route	Trip	Stop	Stop.Sequence	Scheduled.Time	Actual.Arrival.Time	Delay.Sec	StopLat	StopLng`.
 
 - clean.R – contains clean_otp() and helper functions like is_on_time().
 - weather.R – adds weather features to the dataset (snap_to_grid(), fetch_weather()).
@@ -49,6 +51,7 @@ install.packages(c("dplyr", "lubridate", "lme4", "ggplot2", "tidyr"))
   - Delay quantiles by hour and weather (plot_delay_quantiles_by_hour_weather())
   - Delay by hour and weather plots (plot_delay_by_hour(), plot_delay_weather())
   - Heatmaps (plot_heatmap_route_hour())
+- tests.R - basic sanity checks
 
 ## Example Usage 
 (see workflow.R for more details)
