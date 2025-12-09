@@ -1,5 +1,5 @@
-# OTP Data Analysis Workflow
-## PHP 1560 - Audrey Su & Alex Cho
+# OTP Data Analysis
+## PHP 1560 Final Project - Audrey Su & Alex Cho
 
 Repo contains complete R workflow for cleaning, summarizing, modeling, analyzing, and visualizing One-Trip-Performance (OTP) data alongside historical weather data (openmeteo). 
 
@@ -16,7 +16,7 @@ Repo contains complete R workflow for cleaning, summarizing, modeling, analyzing
 
 ## Project Structure
 ```bash
-├── workflow.R # Main script to run full analysis
+├── workflow.R # full analysis run
 ├── clean.R # data cleaning
 ├── weather.R # weather integration
 ├── model.R # GLM and GLMM modeling
@@ -34,7 +34,7 @@ Repo contains complete R workflow for cleaning, summarizing, modeling, analyzing
 The following R packages are needed:
 
 ```r
-install.packages(c("dplyr", "lubridate", "lme4", "ggplot2", "tidyr"))
+install.packages(c("dplyr", "lubridate", "lme4", "ggplot2", "tidyr", "openmeteo", "purrr"))
 ```
 
 ## Scripts & Functions
