@@ -18,6 +18,8 @@ plot_delay_histogram(res$otp, route = 10)   # distribution for Route 10 only
 plot_delay_by_hour(res$otp)  # boxplots of delay by hour
 plot_worst20_eol_stacked(res$worst20_by_late)  
 
+#heatmap has some data on hours 2 and 3. Table summary says there should be none,
+# and even when i manually tried to remove it it was still there
 plot_heatmap_route_hour(res$otp, threshold_sec = 300)
 plot_delay_quantiles_by_hour(res$otp)
 plot_funnel_ontime(res$stop_sum, conf = 0.95)
