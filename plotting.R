@@ -1,5 +1,4 @@
 #' Simple base-R plots for delay diagnostics
-#'
 #' @param tbl cleaned data and route integer 
 
 .clip_to_quantiles <- function(x, lo = 0.01, hi = 0.99) {
@@ -23,12 +22,12 @@ plot_delay_histogram <- function(tbl, route = NULL, trim = c(0.01, 0.99)) {
   abline(v = c(-300, 300), col = "red", lty = 2)
 }
 
-#' Boxplots of delay by hour (base R)
+#' Boxplots of delay by hour 
 plot_delay_by_hour <- function(tbl, trim = c(0.01, 0.99)) {
   d <- tbl[, c("hour","Delay.Sec")]
   d <- d[is.finite(d$Delay.Sec) & !is.na(d$hour), , drop = FALSE]
   
-  # force discrete hour labels 0..23 even if some hours have no data
+  # force hour labels 0-23 even if some hours have no data
   d$hour <- factor(as.integer(d$hour), levels = 0:23)
   
   # winsorize delays for plotting so points/whiskers don’t explode
@@ -41,7 +40,7 @@ plot_delay_by_hour <- function(tbl, trim = c(0.01, 0.99)) {
 
 
 
-# ----- Stacked bar: E/O/L by route -----
+# Stacked bar: E/O/L by route
 plot_route_eol_stacked <- function(route_eol) {
   M <- t(as.matrix(route_eol[, c("early","ontime","late")]))
   op <- par(mar = c(7,4,4,1))
@@ -108,7 +107,7 @@ plot_delay_quantiles_by_hour <- function(tbl, ylim_top = NULL) {
     }
   }
   
-  # y-limits: raise the top if pass ylim_top; otherwise auto from data
+  # y-limits: raise the top if pass ylim_top
   y_min <- min(q1, med, q3, na.rm = TRUE)
   y_max <- max(q1, med, q3, na.rm = TRUE)
   if (!is.null(ylim_top) && is.finite(ylim_top)) y_max <- max(y_max, ylim_top)
