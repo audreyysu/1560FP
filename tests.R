@@ -1,4 +1,4 @@
-# Tiny sanity checks (base R "tests")
+# Tiny sanity checks 
 # Source this file after sourcing other scripts.
 
 test_parsing <- function() {
