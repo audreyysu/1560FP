@@ -10,11 +10,7 @@ Repo contains complete R workflow for cleaning, summarizing, modeling, analyzing
 - [Project Structure](#project-structure)  
 - [Installation](#installation)  
 - [Scripts & Functions](#scripts--functions)  
-- [Example Usage](#example-usage)  
-- [Visualization Outputs](#visualization-outputs)  
-- [Modeling](#modeling)  
-- [Dependencies & Notes](#dependencies--notes)  
-- [Contact](#contact)
+- [Example Usage](#example-usage) 
 
 ---
 
@@ -47,12 +43,12 @@ install.packages(c("dplyr", "lubridate", "lme4", "ggplot2", "tidyr"))
 - analysis.R – summary functions including summarize_by_stop(), summarize_eol_by_route(), summarize_eol_by_stop_route(), worst20_by_late().
 - model.R – fits inverse-probability-weighted GLM (glm) and GLMM (glmer, random intercept for driver) models to predict probability of lateness using weather category and hour, with analyze_lateness().
 - plotting.R – visualizations, saved to the `visualizations/` folder
-  -Delay composition by route (plot_route_eol_stacked())
-  -Top/Bottom stops by lateness (plot_20_eol_stacked())
-  -Delay histograms (plot_delay_histogram())
-  -Delay quantiles by hour and weather (plot_delay_quantiles_by_hour_weather())
-  -Delay by hour and weather plots (plot_delay_by_hour(), plot_delay_weather())
-  -Heatmaps (plot_heatmap_route_hour())
+  - Delay composition by route (plot_route_eol_stacked())
+  - Top/Bottom stops by lateness (plot_20_eol_stacked())
+  - Delay histograms (plot_delay_histogram())
+  - Delay quantiles by hour and weather (plot_delay_quantiles_by_hour_weather())
+  - Delay by hour and weather plots (plot_delay_by_hour(), plot_delay_weather())
+  - Heatmaps (plot_heatmap_route_hour())
 
 ## Example Usage 
 (see workflow.R for more details)
