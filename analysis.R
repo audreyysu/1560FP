@@ -1,3 +1,5 @@
+source("clean.R")
+
 #' Stop-level reliability summary
 #'
 #' @param tbl cleaned table from clean_otp()
@@ -22,7 +24,8 @@ summarize_by_stop <- function(tbl, threshold_sec = 300) {
       ontime_rate = ot,
       median_delay = safe_median(delays),
       p90_delay = safe_quant(delays, 0.9),
-      mean_delay = mean(delays, na.rm = TRUE)
+      mean_delay = mean(delays, na.rm = TRUE),
+      row.names = NULL
     )
   })
   do.call(rbind, res)
@@ -45,14 +48,15 @@ summarize_by_route_hour <- function(tbl, threshold_sec = 300) {
       arrivals = length(ii),
       ontime_rate = mean(is_on_time(delays, threshold_sec), na.rm = TRUE),
       median_delay = safe_median(delays),
-      p90_delay = safe_quant(delays, 0.9)
+      p90_delay = safe_quant(delays, 0.9),
+      row.names = NULL
     )
   })
   do.call(rbind, res)
 }
 
 
-#Early/On-time/Late classifier 
+# Early/On-time/Late classifier helper function
 classify_eol <- function(delay_sec, threshold_sec = 300) {
   early  <- delay_sec < -threshold_sec
   late   <- delay_sec >  threshold_sec
@@ -64,17 +68,23 @@ classify_eol <- function(delay_sec, threshold_sec = 300) {
   )
 }
 
-# E/O/L proportions
+# E/O/L proportions by Route by route only (see documentation below)
 summarize_eol_by_route <- function(tbl, threshold_sec = 300) {
   eol <- classify_eol(tbl$Delay.Sec, threshold_sec)
   out <- aggregate(eol, by = list(Route = tbl$Route),
                    FUN = function(x) mean(x, na.rm = TRUE))
-  # ensure columns in a fixed order
+  # fix order
   out <- out[, c("Route","early","ontime","late")]
   out
 }
 
-# Stop–Route E/O/L proportions and worst 20 by LATE
+#' Summarize Stop–Route Early/On-time/Late (E/O/L) Proportions
+#'
+#' @param tbl df_weather
+#' @param threshold_sec numeric threshold (5 mins) for lateness
+#' @return df with one row per stop-route combination
+#' @example
+#' stop_route_summary <- summarize_eol_by_stop_route(otp_data)
 summarize_eol_by_stop_route <- function(tbl, threshold_sec = 300) {
   key <- paste(tbl$Stop, tbl$Route, sep = "||")
   idx <- split(seq_len(nrow(tbl)), key)
@@ -87,19 +97,26 @@ summarize_eol_by_stop_route <- function(tbl, threshold_sec = 300) {
       n = length(ii),
       early = mean(eol$early,  na.rm = TRUE),
       ontime = mean(eol$ontime, na.rm = TRUE),
-      late = mean(eol$late,   na.rm = TRUE)
+      late = mean(eol$late,   na.rm = TRUE),
+      row.names = NULL
     )
   }))
-  row.names(res) <- NULL
   res
 }
 
-# Worst 20 (by LATE share) with a minimum sample size
+#' Select Worst 20 Stops by Late Share
+#'
+#' @param stop_route_eol df that must have columns `late`, `ontime`, and `n`.
+#' @param min_n min obs for stop to be considered, default 30
+#'
+#' @return df w <=20 rows corresponding to the stops with the highest late share
+#'
+#' @example
+#' worst_stops <- worst20_by_late(stop_route_eol)
+
 worst20_by_late <- function(stop_route_eol, min_n = 30L) {
   d <- stop_route_eol[stop_route_eol$n >= min_n, , drop = FALSE]
   if (!nrow(d)) return(d)
-  o <- order(d$late, -d$ontime, decreasing = c(TRUE, FALSE))
-  d[head(o, 20), , drop = FALSE]
-
+  o <- order(-d$late, d$ontime)
+  d[o[seq_len(min(20, nrow(d)))], , drop = FALSE]
 }
-

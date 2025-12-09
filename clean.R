@@ -1,6 +1,12 @@
+#' CLEAN.R - READING otp_simulated.csv
+#' 5 FUNCTIONS: read_data(), clean(), is_on_time(), safe_median(), safe_quant()
 
-read_otp_csv <- function(path) {
-  read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
+#' Read in your data (.csv)
+#' 
+#' @param file_path .csv 
+#' @example df <- read_data("otp_simulated.csv")
+read_data <- function(file_path) {
+  read.csv(file_path, stringsAsFactors = FALSE)
 }
 
 #' Clean/parse OTP table and fix timing
@@ -9,48 +15,48 @@ read_otp_csv <- function(path) {
 #' @return data.frame with columns:
 #'   Date (Date), Driver.ID (chr), Route (int), Trip (int),
 #'   Stop (chr), Stop.Sequence (int),
-#'   sched (POSIXct), actual (POSIXct),
-#'   Delay.Sec (numeric), hour (int)
-clean_otp <- function(x) {
-  out <- x
-  #small check
-  out$Route <- as.integer(out$Route)
-  out$Trip <- as.integer(out$Trip)
+#'   Scheduled.Time (POSIXct), Actual.Arrival.Time (POSIXct),
+#'   Rounded.Time (POSIXct), Delay.Sec (numeric)
+clean <- function(x) {
+  # fix time columns
+  out <- x %>%
+    mutate(
+      Date = as.POSIXct(Date, format = "%Y-%m-%d", tz = "UTC"),
+      Scheduled.Time = as.POSIXct(Scheduled.Time,
+                                  format = "%Y-%m-%d %H:%M:%S", tz = "UTC"),
+      Actual.Arrival.Time = lubridate::ymd_hms(Actual.Arrival.Time, tz = "UTC"),
+      Rounded.Time = lubridate::floor_date(Scheduled.Time, "hour")
+    )
+  
+  # convert to integer
+  out$Route         <- as.integer(out$Route)
+  out$Trip          <- as.integer(out$Trip)
   out$Stop.Sequence <- as.integer(out$Stop.Sequence)
+  out$hour <- as.integer(format(out$Scheduled.Time, "%H"))
   
-  ## get times
-  fmt <- "%Y-%m-%d %H:%M:%S"
-  tz_used <- "America/New_York"   #probably not necessary but sets timezone in case
-  
-  out$sched  <- as.POSIXct(strptime(out[["Scheduled.Time"]], fmt, tz = tz_used))
-  out$actual <- as.POSIXct(strptime(out[["Actual.Arrival.Time"]], fmt, tz = tz_used))
-  
-  # Derive date/hour from 'scheduled' time
-  out$Date <- as.Date(out$sched, tz = tz_used)
-  out$hour <- as.integer(format(out$sched, "%H"))
-  
-  
-  # raw difference in seconds:
-  d <- as.numeric(difftime(out$actual, out$sched, units = "secs"))
-  
-  # remove if not needed, but has delay check in case
+  # compute raw delay (seconds) and account for extreme values
+  d <- as.numeric(difftime(out$Actual.Arrival.Time, out$Scheduled.Time, units = "secs"))
   if ("Delay.Sec" %in% names(out)) {
-    ds <- as.numeric(out$Delay.Sec)
-    # replace missing or absurd values with recomputed:
-    bad <- !is.finite(ds) | abs(ds) > 12*3600
+    ds  <- suppressWarnings(as.numeric(out$Delay.Sec))
+    bad <- !is.finite(ds) | abs(ds) > 12 * 3600
     ds[bad] <- d[bad]
     d <- ds
   }
-  
-  # move to the closest 24h equivalent: [-12h, +12h]
   d <- ((d + 12*3600) %% (24*3600)) - 12*3600
   
   out$Delay.Sec <- d
   
-  # Keep the columns used later
-  keep <- c("Date","Driver.ID","Route","Trip","Stop","Stop.Sequence",
-            "sched","actual","Delay.Sec","hour")
-  out[keep]
+  # late = >5 min late
+  # early = >1 min early
+  # on-time = anything in between
+  out <- out %>%
+    mutate(
+      early  = Delay.Sec < -60,
+      late   = Delay.Sec > 300,
+      ontime = !early & !late
+    )
+  
+  return(out)
 }
 
 
@@ -72,4 +78,3 @@ safe_median <- function(z) {
 safe_quant <- function(z, p = 0.9) {
   if (length(z)) as.numeric(quantile(z, probs = p, na.rm = TRUE, names = FALSE)) else NA_real_
 }
-
