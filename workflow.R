@@ -4,6 +4,8 @@ library(dplyr)
 library(ggplot2)
 library(lubridate)
 library(tidyr)
+library(purrr)
+library(openmeteo)
 
 run_workflow <- function(raw_file_path, sample_size = 5000, seed = 1560) {
   # all source scripts
@@ -32,7 +34,7 @@ run_workflow <- function(raw_file_path, sample_size = 5000, seed = 1560) {
   message("Stop-level and route-level summaries...")
   stop_summary <- summarize_by_stop(df_weather)
   route_eol <- summarize_eol_by_route(df_weather)
-  stop_route_eol <- summarize_eol_by_stop_route(df_weather)
+  stop_route_eol <- summarize_eol_by_stop_route(df_weather, min_n = 30)
   
   # 10 best & 10 worst stops by LATE share
   worst10 <- stop_route_eol %>% slice_max(late, n = 10, with_ties = FALSE)

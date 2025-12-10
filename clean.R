@@ -60,15 +60,6 @@ clean <- function(x) {
 }
 
 
-#' Binary on-time classifier
-#'
-#' @param delay_sec numeric vector of delays (seconds; negative = early)
-#' @param threshold_sec nonnegative scalar; default 300 (=5 minutes)
-#' @return logical vector: TRUE if |delay_sec| <= threshold, else FALSE
-is_on_time <- function(delay_sec, threshold_sec = 300) {
-  abs(delay_sec) <= threshold_sec
-}
-
 #' Safe median (to make plots more readable)
 safe_median <- function(z) {
   if (length(z)) median(z, na.rm = TRUE) else NA_real_

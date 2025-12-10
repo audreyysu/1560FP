@@ -35,7 +35,7 @@ plot_delay_histogram <- function(tbl, route = NULL, trim = c(0.01, 0.99), strati
     hist(x_plot, breaks = 60,
          main = if (stratify) paste("Delay (sec) –", w) else "Delay (sec) – Overall",
          xlab = "Delay (seconds)")
-    abline(v = c(-300, 300), col = "red", lty = 2)
+    abline(v = c(-60, 300), col = "red", lty = 2)
   }
   par(mfrow = c(1,1))
 }
